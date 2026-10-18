@@ -1,0 +1,4 @@
+target/
+evidence/*.txt
+evidence/*.json
+*.log
