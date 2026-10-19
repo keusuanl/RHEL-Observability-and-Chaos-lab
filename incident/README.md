@@ -1,5 +1,5 @@
 
-# Incident 1: Port Conflict on 9090 (RHEL Cockpit vs. Prometheus)
+# Incident Report 1: Port Conflict on 9090 (RHEL Cockpit vs. Prometheus)
 
 ### Symptom
 During deployment of the monitoring stack, the `prometheus` service failed to start and remained in a crashed state.
@@ -37,7 +37,7 @@ This confirmed that RHEL's default system management interface, **Cockpit** (`co
 RHEL systems have Cockpit enabled on port 9090 by default. When deploying Prometheus on RHEL workstations, port 9093 should be used as the standard fallback to avoid socket allocation conflicts.
 
 
-# Incident 2: Observer service unavailable
+# Incident Report 2: Observer service unavailable
 
 Start time: Recorded during the controlled outage exercise.
 Detection source: Prometheus target status and InstanceDown alert.
@@ -66,3 +66,38 @@ The service was started through systemd and validated through the endpoint, Prom
 - Keep availability alerts and dashboard provisioning under version control.
 - Preserve command output and screenshots with the incident record.
 - Add application-level resilience only after the infrastructure baseline is understood.
+
+
+# Incident Report 3: JVM Boot Failure via Aggressive systemd Resource Constraints
+
+### Symptom
+Created an incident stimulated chaos test by applying a resource limit configuration, the `observer` service repeatedly crashed during startup, alternating between `oom-kill` and JVM initialization failures.
+
+### Diagnostics
+Using `journalctl`, I captured the systemd lifecycle logs around 7:04:35 PM UTC:
+
+```bash
+sudo journalctl -u observer.service -n 50 --no-pager
+```
+
+The logs revealed a two-stage failure pattern:
+1. **cgroup Enforcement:** The process was initially terminated by the kernel with exit status `9/KILL (oom-kill)` because it exceeded memory allocations.
+2. **JVM Guardrails:** On restart, the JVM recognized the strict resource ceiling and aborted execution with the error: `Error occurred during initialization of VM: Too small maximum heap`.
+
+Investigating the service configuration, I checked the drop-in override files:
+```bash
+cat /etc/systemd/system/observer.service.d/observer-memory-limit.conf
+```
+The parameter `MemoryMax` had been set to `1500K` (1.5MB), which is far below the mandatory bootstrap requirements for a Java runtime environment.
+
+### Resolution
+1. Removed the restrictive drop-in configuration file to restore the `MemoryMax` allocation to default (`infinity`).
+2. Reloaded systemd and restarted the app:
+   ```bash
+   sudo systemctl daemon-reload
+   sudo systemctl restart observer.service
+   ```
+3. Verified the service stabilized and was successfully listening on port 8080.
+
+### Takeaway
+Java runtimes are container-aware and read system resource boundaries (cgroups v2) to size their memory pools. When enforcing OS-level constraints via systemd, resource limits must account for both the application workload *and* the baseline virtualization overhead of the Java Virtual Machine itself (typically requiring at least 64MB-128MB to boot).
