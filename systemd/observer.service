@@ -1,0 +1,14 @@
+[Unit]
+Description=Observer Spring Boot service
+After=network.target
+
+[Service]
+Type=simple
+User=observer
+WorkingDirectory=/opt/observer
+ExecStart=/usr/bin/java -jar /opt/observer/observer.jar
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
