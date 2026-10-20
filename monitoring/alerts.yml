@@ -1,11 +1,42 @@
 groups:
   - name: observer-availability
     rules:
-      - alert: InstanceDown
-        expr: up == 0
-        for: 5m
+      # 1. CRITICAL: Linux Node OOM Killer Event Activated
+      - alert: HostOOMKillerActivated
+        expr: increase(node_vmstat_oom_kill[5m]) > 0
+        for: 0m
         labels:
-          severity: page
+          severity: critical
         annotations:
-          summary: "Instance {{ $labels.instance }} down"
-          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+          summary: "Host Out of Memory Killer triggered"
+          description: "The kernel on {{ $labels.instance }} has actively terminated a process due to memory exhaustion."
+
+      # 2. CRITICAL: Immediate check for the main application crashing
+      - alert: ObserverServiceDown
+        expr: up{job="observer"} == 0
+        for: 1m  # Reduced from 5m to catch the crash quickly in a lab environment
+        labels:
+          severity: critical
+        annotations:
+          summary: "Spring Boot Observer service is offline"
+          description: "The observer application on {{ $labels.instance }} is unreachable or has been terminated."
+
+      # 3. WARNING: Warning sign BEFORE a full crash (high memory saturation)
+      - alert: HostMemorySeverelySaturated
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 95
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Host memory critical ({{ $value | printf \"%.2f\" }}%)"
+          description: "System memory on {{ $labels.instance }} is over 95%. An OOM kill is highly likely."
+
+      # 4. WARNING: Observer died and was restarted by systemd (crash loop detector)
+      - alert: ObserverRestarted
+        expr: changes(process_start_time_seconds{job="observer"}[5m]) > 0
+        for: 0m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Observer restarted"
+          description: "The observer process on {{ $labels.instance }} restarted within the last 5 minutes. Check journalctl -u observer.service."
