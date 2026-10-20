@@ -11,7 +11,7 @@ rm -f /usr/local/bin/prometheus /usr/local/bin/promtool /usr/local/bin/node_expo
 rm -rf /opt/observer /etc/prometheus /var/lib/prometheus
 rm -f /etc/grafana/provisioning/datasources/prometheus.yml
 rm -f /etc/grafana/provisioning/dashboards/provider.yml
-rm -f /var/lib/grafana/dashboards/observable-linux-service.json
+rm -f /var/lib/grafana/dashboards/*.json
 dnf remove -y grafana || true
 userdel observer 2>/dev/null || true
 userdel prometheus 2>/dev/null || true

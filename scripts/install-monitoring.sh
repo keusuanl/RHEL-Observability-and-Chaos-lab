@@ -59,7 +59,7 @@ install -d -m 0755 /etc/grafana/provisioning/dashboards
 install -d -m 0755 -o grafana -g grafana /var/lib/grafana/dashboards
 install -m 0644 "$REPO_ROOT/monitoring/grafana/datasources/prometheus.yml" /etc/grafana/provisioning/datasources/prometheus.yml
 install -m 0644 "$REPO_ROOT/monitoring/grafana/dashboards/provider.yml" /etc/grafana/provisioning/dashboards/provider.yml
-install -m 0644 -o grafana -g grafana "$REPO_ROOT/monitoring/grafana/dashboards/observable-linux-service.json" /var/lib/grafana/dashboards/observable-linux-service.json
+for f in "$REPO_ROOT"/monitoring/grafana/dashboards/*.json; do install -m 0644 -o grafana -g grafana "$f" /var/lib/grafana/dashboards/; done
 install -d -m 0755 /etc/systemd/system/grafana-server.service.d
 install -m 0644 "$REPO_ROOT/systemd/grafana-override.conf" /etc/systemd/system/grafana-server.service.d/override.conf
 
