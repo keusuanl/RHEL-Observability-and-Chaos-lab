@@ -1,7 +1,20 @@
 # RHEL Observability Chaos Lab
 
-This repository turns a working RHEL observability stack into a reproducible incident lab and simple SRE workflow.
-Break something on purpose, watch it on the dashboard, find the cause, and recover and captured states with evidence.
+
+[![RHEL](https://img.shields.io/badge/OS-RHEL-EE0000?logo=redhat&logoColor=white)](https://www.redhat.com)
+[![Linux](https://img.shields.io/badge/Linux-86%20Series-000000?logo=linux&logoColor=white)](https://www.kernel.org/)
+[![Prometheus](https://img.shields.io/badge/Monitoring-Prometheus-E6522C?logo=prometheus&logoColor=white)](https://prometheus.io/)
+[![Grafana](https://img.shields.io/badge/Visualization-Grafana-F46800?logo=grafana&logoColor=white)](https://grafana.com/)
+[![Spring Boot](https://img.shields.io/badge/App-Spring%20Boot-6DB33F?logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
+[![systemd](https://img.shields.io/badge/Service%20Mgmt-systemd-2B6CB0?logo=linux&logoColor=white)](https://systemd.io/)
+[![SRE](https://img.shields.io/badge/Focus-SRE%20Troubleshooting-8B5CF6)](https://en.wikipedia.org/wiki/Site_reliability_engineering)
+[![cgroups](https://img.shields.io/badge/Kernel-cgroups-1F2937)](https://man7.org/linux/man-pages/man7/cgroups.7.html)
+[![journalctl](https://img.shields.io/badge/Logs-journalctl-111827)](https://man7.org/linux/man-pages/man1/journalctl.1.html)
+
+This repository is a hands-on RHEL observability and chaos engineering lab for SRE troubleshooting and service recovery. It simulates real production failures against a Spring Boot app, then teaches operators how to detect, diagnose, and recover from issues using Prometheus, Grafana, systemd, cgroups, and journalctl. The goal is to build practical skills in incident response, resource pressure analysis, and operational evidence gathering.
+
+
+
 
 #### Observer.service Baseline
 ![](/docs/images/baseline-grafana.png)
