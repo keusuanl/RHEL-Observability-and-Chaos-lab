@@ -50,6 +50,16 @@ curl  ->  Spring Boot observer  ->  Prometheus  ->  Grafana
 - Every run stops on its own after a set time (`DURATION`, 180 seconds by default).
 - After each experiment, run `make status` and `make smoke` to confirm everything is healthy again.
 
+## Prerequisites
+
+The following tools need to be installed on the host before running the lab:
+
+- Java 21 JDK and Maven 3.x for the Spring Boot app.
+- Prometheus and node_exporter.
+- Grafana.
+- A host stress utility such as `stress-ng` or another CPU/memory stress binary.
+- Standard Linux system tools (`curl`, `bash`, `sudo`, and `systemctl`).
+
 ## Quick Start
 
 1. Go to the repository root.
@@ -64,14 +74,14 @@ curl  ->  Spring Boot observer  ->  Prometheus  ->  Grafana
 
 | Experiment | Hypothesis | Trigger | User symptom | Evidence | Recovery |
 | --- | --- | --- | --- | --- | --- |
-| Control baseline | A healthy system gives the comparison point for every failure run. | `make chaos-baseline DURATION=30` | Requests complete normally. | Grafana golden-signal panels, `/actuator/health` is `UP`. | Let the run finish. Confirm health is normal. |
-| Application latency | If `/slow` takes longer, request time rises while `/actuator/health` stays `UP`. | `make chaos-latency MS=300 DURATION=30` | Requests are slow, but nothing is down. | Grafana latency panels, `/actuator/health`. | Let the run finish. Confirm latency returns to baseline. |
-| HTTP 500 errors | If `/error` always fails, the error rate rises while the process stays healthy. | `make chaos-errors DURATION=30` | Some requests fail. The normal path still works. | Grafana error panels, `/actuator/health`. | Let the run finish. Confirm the error rate returns to baseline. |
-| Application CPU work | If `/simulate-cpu` runs, one request thread is busy for about 10 seconds. | One request to `/simulate-cpu`. | That request is slow while it works. | Grafana application CPU panels. | Wait for the request to finish. Confirm CPU returns to baseline. |
-| Host CPU pressure | If one busy loop runs, the host has less CPU headroom. It means full saturation only on a one-CPU host. | `make host-cpu-stress CPU_DURATION=30` | Little impact on a multi-core host. | Grafana host CPU panels. | Let the run finish. Confirm host CPU returns to baseline. |
-| CPU quota throttling | If `observer.service` has a CPU limit, parallel busy requests are throttled and run slower. | Add `CPUQuota=` to a drop-in, then send four parallel `/simulate-cpu` requests. | Requests take much longer than 10 seconds. | Latency panels, throttling counters in the service's `cpu.stat`. | Remove the drop-in, reload systemd, restart. Run `make chaos-check`. |
-| Service outage | If `observer.service` stops, the app is unavailable. | Use the existing stopped-service experiment. | Requests cannot connect. | systemd state, Prometheus target health, Grafana availability. | Follow the existing recovery steps. Run `make chaos-check`. |
-| Cgroup memory OOM | If the app hits `memory.max`, the kernel kills it inside the cgroup. | Use the existing cgroup OOM experiment. | The app terminates or becomes unavailable. | journald, systemd, cgroup memory files. | Follow the existing rollback steps. Run `make chaos-check`. |
+| Control baseline | A healthy system gives the comparison point for every failure run. | `make chaos-baseline DURATION=30` | Requests complete normally. | Grafana golden-signal panels, `/actuator[...]
+| Application latency | If `/slow` takes longer, request time rises while `/actuator/health` stays `UP`. | `make chaos-latency MS=300 DURATION=30` | Requests are slow, but nothing is down. | Grafa[...]
+| HTTP 500 errors | If `/error` always fails, the error rate rises while the process stays healthy. | `make chaos-errors DURATION=30` | Some requests fail. The normal path still works. | Grafana e[...]
+| Application CPU work | If `/simulate-cpu` runs, one request thread is busy for about 10 seconds. | One request to `/simulate-cpu`. | That request is slow while it works. | Grafana application CP[...]
+| Host CPU pressure | If one busy loop runs, the host has less CPU headroom. It means full saturation only on a one-CPU host. | `make host-cpu-stress CPU_DURATION=30` | Little impact on a multi-co[...]
+| CPU quota throttling | If `observer.service` has a CPU limit, parallel busy requests are throttled and run slower. | Add `CPUQuota=` to a drop-in, then send four parallel `/simulate-cpu` request[...]
+| Service outage | If `observer.service` stops, the app is unavailable. | Use the existing stopped-service experiment. | Requests cannot connect. | systemd state, Prometheus target health, Grafana[...]
+| Cgroup memory OOM | If the app hits `memory.max`, the kernel kills it inside the cgroup. | Use the existing cgroup OOM experiment. | The app terminates or becomes unavailable. | journald, system[...]
 
 ## Chaos Documentated Incident 
 [Health Check Report](docs/experiments/health-check-blind-spot.md)
