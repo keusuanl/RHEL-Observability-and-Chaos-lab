@@ -40,3 +40,32 @@ groups:
         annotations:
           summary: "Observer restarted"
           description: "The observer process on {{ $labels.instance }} restarted within the last 5 minutes. Check journalctl -u observer.service."
+
+      # 5. WARNING: Slowest 5% of requests are too slow (latency symptom)
+      - alert: ObserverLatencyHigh
+        expr: histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job="observer",uri!~"/actuator.*"}[5m]))) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Observer p95 latency is high"
+          description: "p95 latency has been above about 0.5 seconds for 2 minutes."
+
+      # 6. CRITICAL: Too many requests are failing (errors symptom)
+      - alert: ObserverErrorRateHigh
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{job="observer",uri!~"/actuator.*",status=~"5.."}[5m]))
+            /
+            sum(rate(http_server_requests_seconds_count{job="observer",uri!~"/actuator.*"}[5m]))
+          ) > 0.05
+          and
+          sum(rate(http_server_requests_seconds_count{job="observer",uri!~"/actuator.*"}[5m])) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Observer error rate is high"
+          description: "More than 5% of requests have been failing with a 5xx error for 2 minutes."
+
+          
