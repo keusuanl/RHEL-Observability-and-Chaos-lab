@@ -80,4 +80,4 @@ curl  ->  Spring Boot observer  ->  Prometheus  ->  Grafana
 
 [Error](docs/experiments/02-error.md)
 
-[OOM-Killer-CGroup](docs/experiments/03-cgroup.oom.md.md)
+[OOM-Killer-CGroup](docs/experiments/03-cgroup.oom.md)
